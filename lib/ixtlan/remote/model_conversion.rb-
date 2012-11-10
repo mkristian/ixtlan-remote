@@ -1,0 +1,245 @@
+require 'rest-client'
+module Ixtlan
+  module Remote
+    module ModelHelpers
+
+      def to_model_underscore(data)
+        to_model(data).to_s.underscore
+      end
+
+      def to_model_singular_underscore(data)
+        to_model.underscore.singular
+      end
+
+      def to_model(data)
+        case data
+        when Hash
+          data.keys.first
+        when Array
+          if data.empty?
+            #TODO
+          else
+            to_model_class(data[0].class)
+          end
+        when String
+          data
+        when Symbol
+          data
+        when Class
+          to_model_class(data)
+        else
+          to_model_class(data.class)
+        end
+      end
+
+      def to_model_class(obj)
+        obj.respond_to?(:model_name) ? obj.model_name.constantize : obj.class
+      end
+
+      def model_map
+        @_model_map ||= {}
+      end
+    end
+
+    class RestResourceConfig
+
+      def register(server_name, url, options = {})
+        models = options.delete(:models).dup
+        model_map = 
+          case models
+          when Array
+            map = {}
+            models.each do |model|
+              model_map[to_model_singular_underscore(model)] = model
+            end
+            map
+          when Hash
+            models
+          else
+            {}
+          end
+        
+        s = servers[server_name.to_sym] = RestResourceFactory.new(url, model_map, options)
+       
+        model_map.keys.each do |k|
+          model_to_servers[k] = s
+        end
+        s
+      end
+      
+      def model_to_servers
+        @_models ||= {}
+      end
+
+      def new_resource(model)
+        model_to_servers[model].new
+      end
+
+      def to_class(model)
+        key = to_model_singular_underscore(model)
+        model_to_servers[key].to_class(key)
+      end
+
+      def servers
+        @_servers ||= {}
+      end
+
+      def server(name)
+        servers[name.to_sym]
+      end
+
+      def create(model, *args)
+        new_resource(model).create(model, *args).send
+      end
+
+      def retrieve(model, *args)
+        resource = new_resource(model)
+        if args.last.is_a? Hash
+          params = args.delete_at(args.size - 1)
+          resource.retrieve(model, *args).query_params(params)
+        else
+          resource.retrieve(model, *args)
+        end
+        resource.send
+      end
+
+      def update(model, *args)
+         new_resource(model).update(model, *args).send
+      end
+
+      def delete(model, *args)
+        new_resource(model).delete(model, *args).send
+      end
+
+      include ModelHelpers
+    end
+
+    class RestResource
+
+      include ModelHelpers
+
+      def initialize(resource, model_map = {})
+        @base = resource
+        @map = model_map
+      end
+
+      def send(&block)
+        raise "no method given - call any CRUD method first" unless @method
+        headers = {:content_type => :json, :accept => :json}
+        headers[:params] = @params if @params
+        result =
+          if @payload
+            @resource.send @method, @payload.to_json, headers, &block
+          else
+            @resource.send @method, headers, &block
+          end
+        result = JSON.load(result)
+        if @model
+          root = @model_key || @model.to_s.underscore
+          if result.is_a? Array
+            result.collect do |r|
+              first_or_new(r[root])
+            end
+          else
+            first_or_new(result[root])
+          end
+        else
+          result
+        end
+      end
+
+      def query_params(params)
+        @params = params
+        self
+      end
+
+      # retrieve(Locale) => GET /locales
+      # retrieve(Locale, 1) => GET /locales/1
+      # retrieve(:locales) => GET /locales
+      # retrieve(:locales, 1) => GET /locales/1
+      def retrieve(*args)
+        @method = :get
+        @payload = nil
+        @params = nil
+        @resource = @base[path(*args)]
+        self
+      end
+
+      # create(locale) => POST /locales
+      # create(:locale => {:code => 'en'}) => POST /locales
+      def create(*obj_or_hash)
+        @method = :post
+        @payload = nil#obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @params = nil
+        @resource = @base[path(*obj_or_hash)]
+        self
+      end
+
+      def update(*obj_or_hash)
+        @method = :put
+        @payload = nil#obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @params = nil
+        @resource = @base[path(*obj_or_hash)]
+        self
+      end
+
+      def delete(*obj_or_hash)
+        @method = :delete
+        @payload = nil #obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @params = nil
+        @resource = @base[path(*obj_or_hash)]
+        self
+      end
+
+      private
+
+      def first_or_new(attributes)
+        cond = {}
+        @model.key.each { |k| cond[k.name] = attributes[k.name.to_s] }
+        m = @model.first_or_new(cond)
+        m.attributes = attributes
+        m
+      end
+
+      def path(*parts)
+        parts.collect {|p| path_part(p)} * '/'
+      end
+
+      def model=(model)
+        m = @map[model.singularize]
+        m ||= model.singularize.camelize.constantize rescue nil
+        if m
+          @model = m 
+          @model_key = model.singularize.underscore
+        end
+      end
+
+      def path_part(data)
+        model = to_model_underscore(data)
+        case data
+        when Hash
+          @payload = data
+          self.model = model
+          model = model.pluralize
+        when Array
+          @payload = data
+          self.model = model
+          model = model.pluralize
+        when String
+          self.model = model
+        when Fixnum
+        when Symbol
+          self.model = model
+        when Class
+          model = model.pluralize
+        else
+          @payload = data
+          self.model = model
+          model = model.pluralize
+        end
+        model.underscore
+      end
+
+    end
+  end
+end
