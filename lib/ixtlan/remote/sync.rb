@@ -21,7 +21,7 @@ class Ixtlan::Remote::Sync
   # max method ORM dependent
   if defined? ActiveRecord
     def max(clazz)
-      clazz.maximum(:updated_at)
+      (clazz.maximum(:updated_at) || DateTime.new(0)).to_datetime
     end
   else
     def max(clazz)
@@ -32,7 +32,7 @@ class Ixtlan::Remote::Sync
 
   # UTC timestamp of last updated record
   def last_update(clazz)
-    last_date = ( max(clazz) || DateTime.new( 0 ) ) + 1# + SECONDS_IN_DAY
+    last_date = ( max(clazz) || DateTime.new( 0 ) )
     last_date.strftime('%Y-%m-%d %H:%M:%S.') + ("%06d" % (last_date.sec_fraction / NANOSECONDS_IN_DAY / 1000)) + "+0:00"
   end
   private :last_update

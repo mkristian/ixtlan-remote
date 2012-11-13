@@ -8,6 +8,13 @@ module Ixtlan
         'ixtlan_domains'
       end
 
+      # key for selectng the IdentityMap should remain this class if
+      # there is no single table inheritance with Discriminator in place
+      # i.e. the subclass used as key for the IdentityMap
+      def self.base_model
+        self
+      end
+
       property :id, Serial  
       property :name, String, :format => /^[a-z]+$/,:required => true, :length => 32
 

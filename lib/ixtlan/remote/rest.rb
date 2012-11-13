@@ -29,19 +29,21 @@ module Ixtlan
       end
 
       def to_server( model )
-        model_to_servers[ to_model_singular_underscore( model ) ]
+        s = model_to_servers[ to_model_singular_underscore( model ) ]
+        raise "model #{model} unknown as rest service" unless s
+        s
       end
       
       def new_resource( model )
         to_server( model ).new_rest_resource
       end
 
-      def create(model, *args)
+      def create(model, *args, &block)
         if args.size == 0 && model.respond_to?(:attributes)
           clazz = model.class
-          new_resource(clazz).create(clazz, model.attributes).send_it
+          new_resource(clazz).create(clazz, model.attributes).send_it(&block)
         else
-          new_resource(model).create(model, *args).send_it
+          new_resource(model).create(model, *args).send_it(&block)
         end
       end
 
@@ -61,7 +63,7 @@ module Ixtlan
           clazz = model.class
           s = to_server( clazz )
           s.new_rest_resource.update(clazz, 
-                                     *s.keys( model ), 
+                                     s.keys(model), 
                                      model.attributes).send_it
         else
           new_resource(model).update(model, *args).send_it
@@ -73,7 +75,7 @@ module Ixtlan
           clazz = model.class
           s = to_server( clazz )
           s.new_rest_resource.delete(clazz, 
-                                     *s.keys( model ), 
+                                     s.keys( model ), 
                                      model.attributes).send_it
         else
           new_resource(model).delete(model, *args).send_it

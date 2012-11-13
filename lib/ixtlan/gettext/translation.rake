@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 namespace :ixtlan do
 
-  namespace :translations do
+  namespace :gettext do
     desc 'crawls the local filesystem for _(...) method calls and sends the collected translation keys to the remote service'
     task :update => :environment do
       data = {:translation_keys => ENV['KEYS'].split(/,/)}

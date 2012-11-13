@@ -4,8 +4,9 @@ module Ixtlan
 
       include DataMapper::Resource
  
-      # key for selectng the IdentityMap should remain this class 
+      # key for selectng the IdentityMap should remain this class if
       # there is no single table inheritance with Discriminator in place
+      # i.e. the subclass used as key for the IdentityMap
       def self.base_model
         self
       end

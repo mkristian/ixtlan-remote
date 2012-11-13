@@ -55,7 +55,11 @@ module Ixtlan
           end
         end
       else
-        raise "need implementation"
+        warn "need implementation for ActveRecord in #{__FILE__}"
+        
+        def new_method( clazz )
+          clazz.method( :new )
+        end
       end
 
 

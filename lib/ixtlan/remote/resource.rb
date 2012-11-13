@@ -29,7 +29,7 @@ module Ixtlan
                 []
               else
                 root = 
-                  if result[ 1 ].is_a?( Hash ) && result[ 1 ].size == 1
+                  if result[ 0 ].is_a?( Hash ) && result[ 0 ].size == 1
                     root
                   end
                 result.collect do |r|

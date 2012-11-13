@@ -1,4 +1,4 @@
-require 'ixtlan/gettext/locale'
+require 'ixtlan/gettext/locale_resource'
 
 module Ixtlan
   module Gettext

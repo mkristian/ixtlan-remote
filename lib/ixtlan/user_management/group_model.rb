@@ -1,10 +1,9 @@
 module Ixtlan
   module UserManagement
-    class Application
+    class Group
       include Virtus
 
       attribute :name, String
-      attribute :url, String
     end
   end
 end
