@@ -26,6 +26,10 @@ module Ixtlan
       # do not record timestamps since they are set from outside
       def set_timestamps_on_save
       end
+
+      def initialize(params = {})
+        super
+      end
     end
   end
 end

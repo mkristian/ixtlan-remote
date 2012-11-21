@@ -4,6 +4,7 @@ module Ixtlan
       include Virtus
 
       attribute :name, String
+      attribute :associations, Array[Object]
     end
   end
 end
