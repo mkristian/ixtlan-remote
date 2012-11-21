@@ -12,8 +12,7 @@ module Ixtlan
       def login( username_or_email, password )
         user = nil
         @restserver.create( Authentication.new(:login => username_or_email, :password => password) ) do |json|
-p json
-          user = user_new( JSON.load( json ) )
+          user = user_new( JSON.load( json ) ) unless json.strip.empty?
           nil
         end
         user
