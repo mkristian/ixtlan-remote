@@ -1,4 +1,5 @@
 require 'ixtlan/gettext/locale_resource'
+require 'ixtlan/user_management/domain_resource'
 
 module Ixtlan
   module Gettext
@@ -42,8 +43,9 @@ module Ixtlan
         'gettext_texts'
       end
 
-      belongs_to :locale, Locale.to_s,:key => true
       belongs_to :translation_key, TranslationKey.to_s, :key => true
+      belongs_to :locale, Locale.to_s,:key => true
+      belongs_to :domain, Ixtlan::UserManagement::Domain.to_s,:key => true
       
       property :text, String, :required => true
 
