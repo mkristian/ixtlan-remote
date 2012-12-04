@@ -6,9 +6,11 @@ module Ixtlan
       def initialize(restserver)
         @restserver = restserver
       end
+
       def user_new(params)
         User.new(params)
       end
+
       def login( username_or_email, password )
         user = nil
         @restserver.create( Authentication.new(:login => username_or_email, :password => password) ) do |json|
@@ -23,7 +25,6 @@ module Ixtlan
           # ignore result
           nil
         end
-
       end
     end
   end

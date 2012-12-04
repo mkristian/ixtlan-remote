@@ -31,15 +31,15 @@ class Ixtlan::Remote::Sync
   private :max
 
   # UTC timestamp of last updated record
-  def last_update(clazz)
-    last_date = ( max(clazz) || DateTime.new( 0 ) )
-    last_date.strftime('%Y-%m-%d %H:%M:%S.') + ("%06d" % (last_date.sec_fraction / NANOSECONDS_IN_DAY / 1000)) + "+0:00"
+  def last_update( clazz )
+    last_date = ( max( clazz ) || DateTime.new( 0 ) )
+    last_date.strftime( '%Y-%m-%d %H:%M:%S.' ) + ( "%06d" % ( last_date.sec_fraction / NANOSECONDS_IN_DAY / 1000 ) ) + "+0:00"
   end
   private :last_update
 
-  def self.do_it(clazz = nil)
+  def self.do_it( clazz = nil )
     if clazz
-      new.do_it(clazz)
+      new.do_it( clazz )
     else
       new.do_it
     end
@@ -49,6 +49,8 @@ class Ixtlan::Remote::Sync
   def do_it(set = clazzes.keys)
     @last_result = []
     set = [set] unless set.is_a? Array
+    # use only regstered classes !!
+    set = set - (set - clazzes.keys)
     set.to_a.each do |clazz|
       summary = Summary.new(clazz)
       @last_result << summary

@@ -16,7 +16,7 @@ module Ixtlan
       end
 
       property :id, Serial  
-      property :name, String, :format => /^[a-z]+$/,:required => true, :length => 32
+      property :name, String, :unique=>true, :format => /^[a-z]+$/,:required => true, :length => 32
 
       timestamps :updated_at
 

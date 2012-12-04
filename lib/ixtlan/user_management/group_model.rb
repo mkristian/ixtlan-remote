@@ -1,3 +1,4 @@
+require 'virtus'
 module Ixtlan
   module UserManagement
     class Group
