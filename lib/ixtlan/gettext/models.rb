@@ -11,7 +11,7 @@ module Ixtlan
       end
 
       property :id, Serial
-      property :name, String, :unique=>true, :required => true
+      property :name, Text, :unique=>true, :required => true, :length => 4096
       
       property :updated_at, DateTime, :required => true, :lazy => true
 
@@ -24,7 +24,7 @@ module Ixtlan
       end
 
       def self.translation(key, locale)
-        TranslationText.first(TranslationKey.name => key, Locale.code => locale)
+        Translation.first(TranslationKey.name => key, Locale.code => locale)
       end
 
       def self.available_locales
@@ -36,7 +36,7 @@ module Ixtlan
       def set_timestamps_on_save
       end
     end
-    class TranslationText
+    class Translation
       include DataMapper::Resource
 
       def self.storage_name(arg)
@@ -47,7 +47,7 @@ module Ixtlan
       belongs_to :locale, Locale.to_s,:key => true
       belongs_to :domain, Ixtlan::UserManagement::Domain.to_s,:key => true
       
-      property :text, String, :required => true
+      property :text, Text, :required => true, :length => 4096
 
       property :updated_at, DateTime, :required => true, :lazy => true
 

@@ -18,6 +18,10 @@ module Ixtlan
         @map ||= {}
       end
       
+      def models
+        map.keys
+      end
+
       class Meta
 
         attr_reader :path
