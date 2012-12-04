@@ -10,9 +10,12 @@ Gem::Specification.new do |s|
   s.authors = ['Kristian Meier']
   s.email = ['m.kristian@web.de']
 
+  s.license = "AGPL-3"
+
   s.files += Dir['lib/**/*']
   s.files += Dir['spec/**/*']
-  s.files += Dir['MIT-LICENSE'] + Dir['*.md']
+  s.files += Dir['agpl-3.0.txt']
+  s.files += Dir['*.md']
   s.files += Dir['Gemfile']
 
   s.test_files += Dir['spec/**/*_spec.rb']
