@@ -48,30 +48,31 @@ module Ixtlan
         end
       end
 
-      if defined? DataMapper
-        NEW_METHOD = Proc.new do | model, attributes |
-          cond = {}
-          model.key.each { |k| cond[ k.name ] = attributes[ k.name.to_s ] }
-          m = model.first_or_new( cond )
-          m.attributes = attributes
-          m
-        end
-        
-        def new_method( clazz )
-          if clazz.respond_to?( :key ) && clazz.key.kind_of?( DataMapper::PropertySet )
-            Proc.new { |a| NEW_METHOD.call( clazz, a ) }
-          else
-            clazz.method( :new )
-          end
-        end
-      else
-        warn "need better implementation for ActiveRecord in #{__FILE__}"
-        
-        def new_method( clazz )
+      NEW_METHOD = Proc.new do | model, attributes |
+        cond = {}
+        model.key.each { |k| cond[ k.name ] = attributes[ k.name.to_s ] }
+        m = model.first_or_new( cond )
+        m.attributes = attributes
+        m
+      end
+      
+      def new_method_dm( clazz )
+        if clazz.respond_to?( :key ) && clazz.key.kind_of?( DataMapper::PropertySet )
+          Proc.new { |a| NEW_METHOD.call( clazz, a ) }
+        else
           clazz.method( :new )
         end
       end
 
+      def new_method(clazz)
+        if defined? DataMapper
+          new_method_dm(clazz)
+        else
+          warn "TODO need better implementation for ActiveRecord in #{__FILE__} #{__LINE__}"
+        
+          clazz.method( :new )
+        end
+      end
 
       def add_model( clazz, path = nil )
         @factory[ clazz ] = self
