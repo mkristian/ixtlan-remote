@@ -45,10 +45,10 @@ module Ixtlan
 
       def create( model, *args, &block )
         if model.respond_to?( :attributes )
-          new_resource( model.class ).create( *args, model.attributes ).send_it( &block )
-        else
-          new_resource( model ).create( *args ).send_it( &block )
+          args << model.attributes
+          model = model.class
         end
+        new_resource( model ).create( *args ).send_it( &block )
       end
 
       def retrieve( model, *args )
@@ -63,16 +63,16 @@ module Ixtlan
       end
 
       def update_or_delete( method, model, *args )
-        resource =  if model.respond_to?( :attributes )
-                      if args.size == 0
-                        new_resource( model.class ).send( method, *model.key, model.attributes )
-                      else
-                        new_resource( model.class ).send( method,*args, model.attributes )
-                      end
-                    else
-                      new_resource( model ).send( method, *args )
-                    end
-        resource.send_it
+        if model.respond_to?( :attributes )
+          if args.size == 0
+            args += model.key
+            args << model.attributes
+          else
+            args << model.attributes
+          end
+          model = model.class
+        end
+        new_resource( model ).send( method, *args ).send_it
       end
       private :update_or_delete
 

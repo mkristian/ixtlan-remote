@@ -44,12 +44,13 @@ describe Ixtlan::Remote::Resource do
   let( :rest_client ) { ::RestClientMock.new }
 
   describe 'create' do
-    [ User, :users, "users", ["admins", 1, User], ["admins/1", User], ClientUser ].each do |user|
+    [ [User], [:users], ["users"], ["admins", 1, User], ["admins/1", User], [ClientUser] ].each do |user|
+      user.push({:name => 'bla'})
       it 'user without root' do
         
         rest_client.response_payload = '{ "id": 1, "name": "bla" }'
-        
-        u = subject.create( *user, :name => 'bla' ).send_it
+
+        u = subject.create( *user ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
@@ -61,7 +62,7 @@ describe Ixtlan::Remote::Resource do
         
         rest_client.response_payload = '{ "user": { "id": 1, "name": "bla" } }'
        
-        u = subject.create( *user, :name => 'bla' ).send_it
+        u = subject.create( *user ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
@@ -72,12 +73,14 @@ describe Ixtlan::Remote::Resource do
   end
 
   describe 'retrieve' do
-    [ User.new('id' => 1), User, :users, "users", ["admins", 1, User], ["admins/1", User], ClientUser ].each do |user|
+    [ [User.new('id' => 1)], [User], [:users], ["users"], ["admins", 1, User], ["admins/1", User], [ClientUser] ].each do |user|
       it 'user without root' do
         
         rest_client.response_payload = '{ "id": 1, "name": "bla" }'
 
-        u = subject.retrieve( *user, 1 ).send_it
+        uu = user.dup
+        uu.push( 1 )
+        u = subject.retrieve( *uu ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
@@ -105,7 +108,9 @@ describe Ixtlan::Remote::Resource do
         
         rest_client.response_payload = '{ "user": { "id": 1, "name": "bla" } }'
 
-        u = subject.create( *user, 1 ).send_it
+        uu = user.dup
+        uu.push( 1 )
+        u = subject.create( *uu ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
@@ -132,12 +137,15 @@ describe Ixtlan::Remote::Resource do
   end
 
   describe 'update' do
-    [ User.new('id' => 1), User, :users, "users", ["admins", 1, User], ["admins/1", User], ClientUser ].each do |user|
+    [ [User.new('id' => 1)], [User], [:users], ["users"], ["admins", 1, User], ["admins/1", User], [ClientUser] ].each do |user|
+      user.push( 1 )
+      user.push( {:name => 'buh'} )
+
       it 'user without root' do
         
         rest_client.response_payload = '{ "id": 1, "name": "bla" }'
 
-        u = subject.update( *user, 1, :name => 'buh' ).send_it
+        u = subject.update( *user ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
                 
@@ -149,7 +157,7 @@ describe Ixtlan::Remote::Resource do
         
         rest_client.response_payload = '{ "user": { "id": 1, "name": "blablabla" } }'
 
-        u = subject.update( *user, 1, :name => 'buh' ).send_it
+        u = subject.update( *user ).send_it
 
         u.id.must_equal 1
         u.name.must_equal 'blablabla'        
@@ -162,9 +170,11 @@ describe Ixtlan::Remote::Resource do
    describe 'delete' do
     [ [User, 1], [:users,1], ["users",1], ["admins", 1, User, 1], ["admins/1", User, 1], [ClientUser, 1] ].each do |user|
       it "user #{user.inspect}" do
+
         subject.delete( *user ).send_it.must_be_nil
 
         rest_client.path.must_match /(.*\/)?users\/1$/
+
       end
    end
  end
