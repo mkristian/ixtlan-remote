@@ -11,6 +11,21 @@ module Ixtlan
         @new_method = new_method || @model.method(:new)
       end
 
+      def create_result_objects( result )
+        root = @model.to_s.underscore.singularize
+        if result.is_a? Array
+          result.collect do |r|
+            new_instance( r[root] || r )
+          end
+        else
+          attr = if result.is_a?( Hash ) && result.size == 1
+                   result[root]
+                 end
+          new_instance( attr || result )
+        end
+      end
+      private :create_result_objects
+
       def send_it(&block)
         raise "no method given - call any CRUD method first" unless @method
         headers = {:content_type => :json, :accept => :json}
@@ -22,28 +37,7 @@ module Ixtlan
             @resource.send( @method, headers, &block )
           end
         if result && result.size > 0
-          result = JSON.load( result )
-            root = @model.to_s.underscore.singularize
-          if result.is_a? Array
-            if result.empty?
-              []
-            else
-              root = 
-                if result[ 0 ].is_a?( Hash ) && result[ 0 ].size == 1
-                  result[ 0 ].keys.first
-                end
-              result.collect do |r|
-                new_instance( r[root] || r )
-              end
-            end
-          else
-            attr = if result.is_a?( Hash ) && result.size == 1
-                     result[root] || result
-                   else
-                     result
-                   end
-            new_instance( attr )
-          end
+          create_result_objects( JSON.load( result ) )
         else
           nil
         end
@@ -63,10 +57,6 @@ module Ixtlan
         end
       end
 
-      # retrieve(Locale) => GET /locales
-      # retrieve(Locale, 1) => GET /locales/1
-      # retrieve(:locales) => GET /locales
-      # retrieve(:locales, 1) => GET /locales/1
       def retrieve(*args)
         @method = :get
         @params = nil
@@ -75,8 +65,6 @@ module Ixtlan
         self
       end
 
-      # create(locale) => POST /locales
-      # create(:locale => {:code => 'en'}) => POST /locales
       def create(*obj_or_hash)
         @method = :post
         @payload = last(obj_or_hash)

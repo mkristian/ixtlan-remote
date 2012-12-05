@@ -62,29 +62,28 @@ module Ixtlan
         resource.send_it
       end
 
+      def update_or_delete( method, model, *args )
+        resource =  if model.respond_to?( :attributes )
+                      if args.size == 0
+                        new_resource( model.class ).send( method, *model.key, model.attributes )
+                      else
+                        new_resource( model.class ).send( method,*args, model.attributes )
+                      end
+                    else
+                      new_resource( model ).send( method, *args )
+                    end
+        resource.send_it
+      end
+      private :update_or_delete
+
       def update( model, *args )
-        if model.respond_to?( :attributes )
-          if args.size == 0
-            new_resource( model.class ).update( *model.key, model.attributes).send_it
-          else
-            new_resource( model.class ).update( *args, model.attributes).send_it
-          end
-        else
-          new_resource( model ).update( *args ).send_it
-        end
+        update_or_delete( :update, model, *args )
       end
 
-      def delete(model, *args)
-        if model.respond_to?( :attributes )
-          if args.size == 0
-            new_resource( model.class ).delete( *model.key, model.attributes ).send_it
-          else
-            new_resource( model.class ).delete( *args, model.attributes ).send_it
-          end
-        else
-          new_resource( model ).delete(*args).send_it
-        end
+      def delete( model, *args )
+        update_or_delete( :delete, model, *args )
       end
     end
   end
 end
+
