@@ -35,15 +35,19 @@ module Ixtlan
       end
       
       def new_resource( model )
-        to_server( model ).new_rest_resource
+        begin 
+          m = to_model_singular_underscore( model ).camelize.constantize 
+          to_server( model ).new_rest_resource( m )
+        rescue
+          raise "unknown model #{model}"
+        end
       end
 
-      def create(model, *args, &block)
-        if args.size == 0 && model.respond_to?(:attributes)
-          clazz = model.class
-          new_resource(clazz).create(clazz, model.attributes).send_it(&block)
+      def create( model, *args, &block )
+        if model.respond_to?( :attributes )
+          new_resource( model.class ).create( *args, model.attributes ).send_it( &block )
         else
-          new_resource(model).create(model, *args).send_it(&block)
+          new_resource( model ).create( *args ).send_it( &block )
         end
       end
 
@@ -51,34 +55,34 @@ module Ixtlan
         resource = new_resource( model )
         if args.last.is_a? Hash
           params = args.delete_at( args.size - 1 )
-          resource.retrieve( model, *args ).query_params( params )
+          resource.retrieve( *args ).query_params( params )
         else
-          resource.retrieve( model, *args )
+          resource.retrieve( *args )
         end
         resource.send_it
       end
 
-      def update(model, *args)
-        if args.size == 0 && model.respond_to?(:attributes)
-          clazz = model.class
-          s = to_server( clazz )
-          s.new_rest_resource.update(clazz, 
-                                     s.keys(model), 
-                                     model.attributes).send_it
+      def update( model, *args )
+        if model.respond_to?( :attributes )
+          if args.size == 0
+            new_resource( model.class ).update( *model.key, model.attributes).send_it
+          else
+            new_resource( model.class ).update( *args, model.attributes).send_it
+          end
         else
-          new_resource(model).update(model, *args).send_it
+          new_resource( model ).update( *args ).send_it
         end
       end
 
       def delete(model, *args)
-        if args.size == 0 && model.respond_to?(:attributes)
-          clazz = model.class
-          s = to_server( clazz )
-          s.new_rest_resource.delete(clazz, 
-                                     s.keys( model ), 
-                                     model.attributes).send_it
+        if model.respond_to?( :attributes )
+          if args.size == 0
+            new_resource( model.class ).delete( *model.key, model.attributes ).send_it
+          else
+            new_resource( model.class ).delete( *args, model.attributes ).send_it
+          end
         else
-          new_resource(model).delete(model, *args).send_it
+          new_resource( model ).delete(*args).send_it
         end
       end
     end

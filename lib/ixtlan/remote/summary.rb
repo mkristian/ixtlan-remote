@@ -17,7 +17,7 @@ class Ixtlan::Remote::Sync
     end
 
     def to_log
-      "update #{@clazz} - total: #{@count + @failures.size}  success: #{@count}  failures: #{@failures.join("\n\t\t")}"
+      "update #{@clazz} - total: #{@count + @failures.size}  success: #{@count}  failures: #{@failures.size == 0 ? 0 : @failures.join("\n\t\t")}"
     end
   end
 end

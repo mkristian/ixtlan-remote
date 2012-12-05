@@ -1,4 +1,4 @@
 if defined?(Rails)
-  require 'ixtlan/railtie'
+  require 'ixtlan/remote/railtie'
 end
 

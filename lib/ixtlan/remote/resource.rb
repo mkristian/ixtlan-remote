@@ -5,9 +5,10 @@ module Ixtlan
 
       include ModelHelpers
 
-      def initialize(resource, model_map = {})
+      def initialize(resource, model, new_method = nil)
         @base = resource
-        @map = model_map
+        @model = model
+        @new_method = new_method || @model.method(:new)
       end
 
       def send_it(&block)
@@ -15,44 +16,51 @@ module Ixtlan
         headers = {:content_type => :json, :accept => :json}
         headers[:params] = @params if @params
         result =
-          if @payload
-            @resource.send( @method, @payload.to_json, headers, &block )
+          if @method != :get
+            @resource.send( @method, @payload ? @payload.to_json : nil, headers, &block )
           else
             @resource.send( @method, headers, &block )
           end
-        unless result.blank?
+        if result && result.size > 0
           result = JSON.load( result )
-          if @model
-            root = @map[ @model ].singular || @model_key
-            if result.is_a? Array
-              if result.empty?
-                []
-              else
-                root = 
-                  if result[ 0 ].is_a?( Hash ) && result[ 0 ].size == 1
-                    root
-                  end
-                result.collect do |r|
-                  new_instance( @model, r[root] || r )
-                end
-              end
+            root = @model.to_s.underscore.singularize
+          if result.is_a? Array
+            if result.empty?
+              []
             else
-              attr = if result.is_a?( Hash ) && result.size == 1
-                       result[root]
-                     else
-                       result
-                     end
-              new_instance(@model, attr)
+              root = 
+                if result[ 0 ].is_a?( Hash ) && result[ 0 ].size == 1
+                  result[ 0 ].keys.first
+                end
+              result.collect do |r|
+                new_instance( r[root] || r )
+              end
             end
           else
-            result
+            attr = if result.is_a?( Hash ) && result.size == 1
+                     result[root] || result
+                   else
+                     result
+                   end
+            new_instance( attr )
           end
+        else
+          nil
         end
       end
 
       def query_params(params)
         @params = params
         self
+      end
+
+      def last(args)
+        if args.last.is_a?(Hash)
+          args.reverse!
+          l = args.shift
+          args.reverse!
+          l
+        end
       end
 
       # retrieve(Locale) => GET /locales
@@ -71,7 +79,7 @@ module Ixtlan
       # create(:locale => {:code => 'en'}) => POST /locales
       def create(*obj_or_hash)
         @method = :post
-        @payload = nil#obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @payload = last(obj_or_hash)
         @params = nil
         @resource = @base[path(*obj_or_hash)]
         self
@@ -79,7 +87,7 @@ module Ixtlan
 
       def update(*obj_or_hash)
         @method = :put
-        @payload = nil#obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @payload = last(obj_or_hash)
         @params = nil
         @resource = @base[path(*obj_or_hash)]
         self
@@ -87,7 +95,7 @@ module Ixtlan
 
       def delete(*obj_or_hash)
         @method = :delete
-        @payload = nil #obj_or_hash.is_a?(Class)? nil : obj_or_hash
+        @payload = last(obj_or_hash)
         @params = nil
         @resource = @base[path(*obj_or_hash)]
         self
@@ -99,54 +107,31 @@ module Ixtlan
 
       private
 
-      def new_instance( clazz, attributes )
-        @map[ clazz ].new( attributes )
+      def new_instance( attributes )
+        @new_method.call( attributes )
       end
 
       def path(*parts)
-        parts.collect { |p| path_part( p ) }.delete_if { |p| p.nil? } * '/'
-      end
-
-      def model_set(model)
-        m = model.singularize.camelize.constantize rescue nil
-        if m
-          @model = m 
-          @model_key = model.singularize.underscore
-        end
+        parts.flatten.collect do |part|
+          case part
+          when Class
+            part.to_s.pluralize.underscore
+          else
+            if part.respond_to? :attributes
+              part.class.to_s.pluralize.underscore
+            else
+              part.to_s
+            end
+          end
+        end * '/'
       end
 
       def path_part(data)
-        model = to_model_underscore(data)
-        case data
-        when Hash
-          @payload = data
-          if model_set(model)
-            model = model.pluralize
-          else
-            model = nil
-          end
-        when Array
-          @payload = data
-          if model_set model
-            model = model.pluralize
-          end
-        when String
-          model_set model
-        when Fixnum
-          model = data.to_s
-        when Symbol
-          model_set model
-        when Class
-          model_set model
-          model = @map.member?( data ) ? @map[ data ].path : model.pluralize
-        else
-          @payload = data
-          model_set model
-          model = model.pluralize
+        unless data.is_a?(Hash)
+          data = [data] unless data.is_a?(Array)
+          data.collect { |d| d.to_s }.join("/")
         end
-        model.underscore if model
       end
-
     end
   end
 end

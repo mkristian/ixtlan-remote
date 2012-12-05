@@ -1,5 +1,6 @@
 require 'ixtlan/remote/resource'
 require 'ixtlan/remote/server'
+require 'active_support/core_ext/string'
 require 'json'
 class RestClientMock
 
@@ -15,6 +16,7 @@ class RestClientMock
     @response_payload
   end
 
+  alias :get :response_payload
   alias :post :response_payload
   alias :put :response_payload
   alias :delete :response_payload
@@ -37,13 +39,7 @@ class ClientUser < User; end
 
 describe Ixtlan::Remote::Resource do
 
-  subject do
-    Ixtlan::Remote::Resource.new( rest_client, 
-                                  { 
-                                    User => Ixtlan::Remote::Server::Meta.new( nil, User.method(:new) ), 
-                                    ClientUser =>  Ixtlan::Remote::Server::Meta.new( :users, ClientUser.method(:new) ) 
-                                  } )
-  end
+  subject {  Ixtlan::Remote::Resource.new( rest_client, User ) }
  
   let( :rest_client ) { ::RestClientMock.new }
 
@@ -57,19 +53,19 @@ describe Ixtlan::Remote::Resource do
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users$/
       end
       
       it 'user with root' do
         
         rest_client.response_payload = '{ "user": { "id": 1, "name": "bla" } }'
-        
+       
         u = subject.create( *user, :name => 'bla' ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users$/
       end
     end
@@ -80,46 +76,47 @@ describe Ixtlan::Remote::Resource do
       it 'user without root' do
         
         rest_client.response_payload = '{ "id": 1, "name": "bla" }'
-        
-        u = subject.create( *user, 1 ).send_it
+
+        u = subject.retrieve( *user, 1 ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users\/1$/
       end
       
       it 'users without root' do
         
         rest_client.response_payload = '[ { "id": 1, "name": "bla" }, { "id": 2, "name": "blabla" } ]'
-        
-        u = subject.create( *user ).send_it
+
+        u = subject.retrieve( *user ).send_it
         u.size.must_equal 2
         u[0].id.must_equal 1
         u[0].name.must_equal 'bla'
         u[1].id.must_equal 2
         u[1].name.must_equal 'blabla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u[0].class.must_equal User
+        u[1].class.must_equal User
         rest_client.path.must_match /(.*\/)?users$/
       end
-
+   
       it 'user with root' do
         
         rest_client.response_payload = '{ "user": { "id": 1, "name": "bla" } }'
-        
+
         u = subject.create( *user, 1 ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users\/1$/
       end
 
       it 'users with root' do
         
         rest_client.response_payload = '[ { "user": { "id": 1, "name": "bla" } }, { "user": { "id": 2, "name": "blabla" } } ]'
-        
+
         u = subject.create( *user ).send_it
         u.size.must_equal 2
         u[0].id.must_equal 1
@@ -127,7 +124,8 @@ describe Ixtlan::Remote::Resource do
         u[1].id.must_equal 2
         u[1].name.must_equal 'blabla'
         
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u[0].class.must_equal User
+        u[1].class.must_equal User
         rest_client.path.must_match /(.*\/)?users$/
       end       
     end
@@ -138,38 +136,36 @@ describe Ixtlan::Remote::Resource do
       it 'user without root' do
         
         rest_client.response_payload = '{ "id": 1, "name": "bla" }'
-        
+
         u = subject.update( *user, 1, :name => 'buh' ).send_it
         u.id.must_equal 1
         u.name.must_equal 'bla'
-        
-        subject.model.must_equal user.is_a?(Class) ? user : User
+                
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users\/1$/
       end
 
-      it 'user with root' do
+      it "user with root #{user} " do
         
-        rest_client.response_payload = '{ "user": { "id": 1, "name": "bla" } }'
-        
-        u = subject.create( *user, 1, :name => 'buh' ).send_it
+        rest_client.response_payload = '{ "user": { "id": 1, "name": "blablabla" } }'
+
+        u = subject.update( *user, 1, :name => 'buh' ).send_it
+
         u.id.must_equal 1
-        u.name.must_equal 'bla'
-        
-        subject.model.must_equal user.is_a?(Class) ? user : User
+        u.name.must_equal 'blablabla'        
+        u.class.must_equal User
         rest_client.path.must_match /(.*\/)?users\/1$/
       end
     end
   end
 
-  describe 'delete' do
-    [ User, :users, "users", ["admins", 1, User], ["admins/1", User], ClientUser ].each do |user|
-      it 'user' do
-        
-        subject.delete( *user, 1 ).send_it.must_be_nil
-        
-        subject.model.must_equal user.is_a?(Class) ? user : User
+   describe 'delete' do
+    [ [User, 1], [:users,1], ["users",1], ["admins", 1, User, 1], ["admins/1", User, 1], [ClientUser, 1] ].each do |user|
+      it "user #{user.inspect}" do
+        subject.delete( *user ).send_it.must_be_nil
+
         rest_client.path.must_match /(.*\/)?users\/1$/
       end
-    end
-  end
+   end
+ end
 end

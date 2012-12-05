@@ -32,33 +32,27 @@ describe Ixtlan::Remote::Sync do
     end
     factory
   end
-  let( :headers ) { { 'Accept'=>'application/json', 'Accept-Encoding'=>'gzip, deflate', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby' } }
+  let( :headers ) { { 'Accept'=>'application/json', 'Accept-Encoding'=>'gzip, deflate', 'Content-Type'=>'application/json' }}#, 'User-Agent'=>'Ruby' } }
   let( :url ) { baseurl + "/locales" }
 
   before { Locale.all.destroy }
 
   it 'sync all' do
 
-    stub_request(:get, /#{url}\/last_changes.*00:00:00.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[{"id": 111, "name": "bla", "updated_at":"2011-07-20 11:11:11.000000+0:00" }]' )
+    stub_request(:get, /#{url}\/last_changes.*00:00:00.*/).with(:headers => headers).to_return( :status => 200, :body => '[{"id": 111, "name": "bla", "updated_at":"2011-07-20 11:11:11.000000+0:00" }]' )
     
     subject.do_it.to_s.must_equal "update Locale - total: 1  success: 1  failures: 0"
     
     Locale.count.must_equal 1
 
-    stub_request(:get, /#{url}\/last_changes.*11:11:11.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[{"id": 111, "name": "blabla", "updated_at":"2011-07-20 11:11:12.000000+0:00" }]' )
+    stub_request(:get, /#{url}\/last_changes.*11:11:11.*/).with(:headers => headers).to_return( :status => 200, :body => '[{"id": 111, "name": "blabla", "updated_at":"2011-07-20 11:11:12.000000+0:00" }]' )
     
     subject.do_it( Locale ).to_s.must_equal "update Locale - total: 1  success: 1  failures: 0"
     
     Locale.count.must_equal 1
     Locale.first.name.must_equal 'blabla'
 
-    stub_request(:get, /#{url}\/last_changes.*11:11:12.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[]' )
+    stub_request(:get, /#{url}\/last_changes.*11:11:12.*/).with(:headers => headers).to_return( :status => 200, :body => '[]' )
     
     subject.do_it.to_s.must_equal "update Locale - total: 0  success: 0  failures: 0"
  
@@ -67,26 +61,20 @@ describe Ixtlan::Remote::Sync do
  
   it 'sync Locale' do
 
-    stub_request(:get, /#{url}\/last_changes.*00:00:00.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[{"id": 111, "name": "bla", "updated_at":"2011-07-20 10:10:10.000000+0:00" }]' )
+    stub_request(:get, /#{url}\/last_changes.*00:00:00.*/).with(:headers => headers).to_return( :status => 200, :body => '[{"id": 111, "name": "bla", "updated_at":"2011-07-20 10:10:10.000000+0:00" }]' )
     
     subject.do_it( Locale ).to_s.must_equal "update Locale - total: 1  success: 1  failures: 0"
     
     Locale.count.must_equal 1
 
-    stub_request(:get, /#{url}\/last_changes.*10:10:10.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[{"id": 111, "name": "blabla", "updated_at":"2011-07-20 10:10:11.000000+0:00" }]' )
+    stub_request(:get, /#{url}\/last_changes.*10:10:10.*/).with(:headers => headers).to_return( :status => 200, :body => '[{"id": 111, "name": "blabla", "updated_at":"2011-07-20 10:10:11.000000+0:00" }]' )
     
     subject.do_it( Locale ).to_s.must_equal "update Locale - total: 1  success: 1  failures: 0"
     
     Locale.count.must_equal 1
     Locale.first.name.must_equal 'blabla'
 
-    stub_request(:get, /#{url}\/last_changes.*10:10:11.*/)
-      .with(:headers => headers)
-      .to_return( :status => 200, :body => '[]' )
+    stub_request(:get, /#{url}\/last_changes.*10:10:11.*/).with(:headers => headers).to_return( :status => 200, :body => '[]' )
     
     subject.do_it( Locale ).to_s.must_equal "update Locale - total: 0  success: 0  failures: 0"
  
