@@ -4,23 +4,18 @@ module RestClient
   class Resource
     # allow payload on delete - breaks code using original method !!!!
     def delete(payload = nil, additional_headers={}, &block)
-     # raise "#{additional_headers.inspect} #{payload.inspect}"
       headers = (options[:headers] || {}).merge(additional_headers)
+      opts = options.merge( :method => :delete,
+                            :url => url,
+                            :headers => headers )
       if payload
-        Request.execute(options.merge(
-                                      :method => :delete,
-                                      :url => url,
-                                      :payload => payload,
-                                      :headers => headers), &(block || @block))
-      else
-        Request.execute(options.merge(
-                                      :method => :delete,
-                                      :url => url,
-                                      :headers => headers), &(block || @block))
+        opts[:payload] = payload
       end
+      Request.execute( opts, &(block || @block))
     end
   end
 end
+
 module Ixtlan
   module Remote
     class Server
@@ -78,11 +73,10 @@ module Ixtlan
       end
 
 
-      def add_model( clazz, path = nil )#, &block )
+      def add_model( clazz, path = nil )
         @factory[ clazz ] = self
         m = map[ clazz ] = Meta.new( new_method( clazz ),
                                      (path || clazz.to_s.underscore.pluralize ) )
-        #block.call m if block
       end
 
       def keys( clazz )
