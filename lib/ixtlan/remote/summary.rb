@@ -2,6 +2,8 @@ module Ixtlan
   module Remote
     class Summary
 
+      attr_reader :failures, :count
+
       def initialize(clazz)
         @count = 0
         @failures = []
