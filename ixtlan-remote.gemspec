@@ -20,8 +20,8 @@ Gem::Specification.new do |s|
 
   s.test_files += Dir['spec/**/*_spec.rb']
   s.add_dependency 'rest-client', '~> 1.6.3'
-  s.add_development_dependency 'rake', '= 10.0.2'
-  s.add_development_dependency 'minitest', '4.3.2'
+  s.add_development_dependency 'rake', '~> 10.0.2'
+  s.add_development_dependency 'minitest', '~> 4.3.0'
   s.add_development_dependency 'activesupport', '~> 3.2'
   s.add_development_dependency 'dm-sqlite-adapter', '1.2.0'
   s.add_development_dependency 'dm-migrations', '1.2.0'
