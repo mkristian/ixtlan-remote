@@ -12,7 +12,7 @@ module Ixtlan
       end
 
       def create_result_objects( result )
-        root = @model.to_s.underscore.singularize
+        root = @model.to_s.sub(/.*::/, '').underscore.singularize
         if result.is_a? Array
           result.collect do |r|
             new_instance( r[root] || r )
@@ -32,7 +32,7 @@ module Ixtlan
         headers[:params] = @params if @params
         result =
           if @method != :get
-            @resource.send( @method, @payload ? @payload.to_json : nil, headers, &block )
+            @resource.send( @method, @payload ? @payload.to_json : '', headers, &block )
           else
             @resource.send( @method, headers, &block )
           end
