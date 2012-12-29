@@ -23,28 +23,32 @@ module Ixtlan
   module UserManagement
     class Authenticator
 
-      def initialize(restserver)
+      def initialize( restserver )
         @restserver = restserver
       end
 
-      def user_new(params)
-        User.new(params)
+      def user_new( params )
+        User.new( params )
       end
 
       def login( username_or_email, password )
         user = nil
-        @restserver.create( Authentication.new(:login => username_or_email, :password => password) ) do |json|
-          user = user_new( JSON.load( json ) ) unless json.strip.empty?
+        @restserver.create( Authentication.new(:login => username_or_email, :password => password) ) do |json, req|
+          user = user_new( JSON.load( json ) ) unless json.strip == ''
           nil
         end
         user
       end
       
-      def reset_password(username_or_email)
-        @restserver.create( Authentication, :reset_password, :login => username_or_email ) do
-          # ignore result
+      def reset_password( username_or_email )
+        result = nil
+        @restserver.create( Authentication.new( :login => username_or_email ), 
+                            :reset_password ) do |json, req|
+          result = json unless json.strip == ''
+          #tell restserver to ignore response
           nil
         end
+        result
       end
     end
   end
