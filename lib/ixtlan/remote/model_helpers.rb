@@ -22,16 +22,16 @@ module Ixtlan
   module Remote
     module ModelHelpers
 
-      def to_model_underscore(data)
-        m = to_model(data)
+      def to_model_underscore( data )
+        m = to_model( data )
         m.to_s.underscore if m
       end
 
-      def to_model_singular_underscore(data)
-        to_model_underscore(data).singularize
+      def to_model_singular_underscore( data )
+        to_model_underscore( data ).sub( /s$/, '' )
       end
 
-      def to_model(data)
+      def to_model( data )
         case data
         when Hash
           if data.size == 1
