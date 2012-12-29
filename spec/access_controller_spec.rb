@@ -5,8 +5,8 @@ require 'ixtlan/remote/access_controller'
 
 DataMapper.setup(:default, 'sqlite::memory:')
 Ixtlan::Remote::Permission.auto_migrate!
-Ixtlan::Remote::Permission.create(:ip => '1.1.1.1', :token => 'behappy')
-Ixtlan::Remote::Permission.create(:token => 'be happy')
+Ixtlan::Remote::Permission.create(:allowed_ip => '1.1.1.1', :authentication_token => 'behappy')
+Ixtlan::Remote::Permission.create(:authentication_token => 'be happy')
 
 class Controller
   include Ixtlan::Remote::AccessController
@@ -46,7 +46,7 @@ describe Ixtlan::Remote::AccessController do
   it 'should pass without permission IP' do
     subject.request.headers['X-SERVICE-TOKEN'] = 'be happy'
 
-    subject.remote_permission.token.must_equal 'be happy'
+    subject.remote_permission.authentication_token.must_equal 'be happy'
   end
 
   it 'should fail with wrong IP' do
@@ -59,7 +59,7 @@ describe Ixtlan::Remote::AccessController do
     subject.request.headers['X-SERVICE-TOKEN'] = 'behappy'
     subject.request.remote_ip '1.1.1.1'
 
-    subject.remote_permission.token.must_equal 'behappy'
-    subject.remote_permission.ip.must_equal '1.1.1.1'
+    subject.remote_permission.authentication_token.must_equal 'behappy'
+    subject.remote_permission.allowed_ip.must_equal '1.1.1.1'
   end
 end

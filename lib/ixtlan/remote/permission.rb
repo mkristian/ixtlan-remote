@@ -33,8 +33,8 @@ module Ixtlan
 
       property :id, Serial
       
-      property :ip, String
-      property :token, String
+      property :allowed_ip, String
+      property :authentication_token, String
     end
   end
 end
