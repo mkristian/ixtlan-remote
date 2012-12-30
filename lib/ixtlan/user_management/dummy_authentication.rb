@@ -3,7 +3,8 @@ module Ixtlan
     module DummyAuthentication
 
       def self.need_dummy?( rest, server )
-        rest.to_server( server ).url =~ /localhost/ && !(ENV['SSO'] == 'true' || ENV['SSO'] == '')
+        url = rest.to_server( server ).url
+        (url =~ /localhost/ || url =~ /127.0.0.1/ || url =~ /::1/) && !(ENV['SSO'] == 'true' || ENV['SSO'] == '')
       end
 
       def login(login, password)
