@@ -24,12 +24,12 @@ module Ixtlan
     end
 
     def self.load( file )
-      if File.exists?(file)
-        symbolize_keys(YAML::load(ERB.new(IO.read(file)).result))
-        warn "[Passwords] Loaded #{file} file"
+      rel_file = File.expand_path( file ).sub( /#{File.expand_path '.' }\/?/, '' )
+      if File.exists?( file )
+        warn "[Passwords] Loaded #{rel_file} file"
+        symbolize_keys( YAML::load( ERB.new( IO.read( file ) ).result ) )
       else
-        file = File.expand_path( file ).sub( /#{File.expand_path '.' }\/?/, '' )
-        warn "[Passwords] No #{file} file to load"
+        warn "[Passwords] No #{rel_file} file to load"
       end
     end
 
@@ -41,8 +41,12 @@ module Ixtlan
       @config[ key ]
     end
 
-    def self.get( key )
-      @config.get( key )
+    def self.get( key, default = nil )
+      if default
+        @config.get( key, default )
+      else
+        @config.get( key )
+      end
     end
   end
 end
