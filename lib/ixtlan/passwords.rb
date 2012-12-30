@@ -26,6 +26,7 @@ module Ixtlan
     def self.load( file )
       if File.exists?(file)
         symbolize_keys(YAML::load(ERB.new(IO.read(file)).result))
+        warn "[Passwords] Loaded #{file} file"
       else
         file = File.expand_path( file ).sub( /#{File.expand_path '.' }\/?/, '' )
         warn "[Passwords] No #{file} file to load"
