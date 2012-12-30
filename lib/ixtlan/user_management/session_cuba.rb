@@ -23,6 +23,9 @@ module Ixtlan
           user = self.class.authenticator.login( *login_and_password )
           if user      
             current_user( user )
+            # be compliant with rack-protection and rack-csrf
+            csrf = session[ :csrf ] || session[ "csrf.token" ]
+            res[ 'X-CSRF-TOKEN' ] = csrf if csrf
             write self.class.sessions.create( user )
           else
             log "access denied"
