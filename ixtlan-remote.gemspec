@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 Gem::Specification.new do |s|
   s.name = 'ixtlan-remote'
-  s.version = '0.1.3'
+  s.version = '0.1.4'
 
-  s.summary = ''
+  s.summary = 'helper for remote rest-services'
   s.description = 'helper sync data between miniapps or communicate wth realtime rest-services'
   s.homepage = 'https://github.com/mkristian/ixtlan-remote'
 
