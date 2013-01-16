@@ -1,5 +1,4 @@
 # -*- Coding: utf-8 -*-
-require 'ixtlan/user_management/user_model'
 require 'ixtlan/user_management/user_serializer'
 require 'ixtlan/user_management/session_model'
 require 'ixtlan/user_management/session_serializer'
