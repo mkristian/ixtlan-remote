@@ -19,7 +19,6 @@
 # along with ixtlan-remote.  If not, see <http://www.gnu.org/licenses/>.
 #
 require 'ixtlan/remote/summary'
-require 'active_support/all'
 
 module Ixtlan
   module Remote
@@ -43,18 +42,18 @@ module Ixtlan
       # max method ORM dependent
       if defined? ActiveRecord
         def max(clazz)
-          (clazz.maximum(:updated_at) || DateTime.new(0)).to_datetime
+          ( clazz.maximum( :updated_at ) || DateTime.new( 1 ) ).to_datetime
         end
       else
         def max(clazz)
-          clazz.max(:updated_at)
+          clazz.max(:updated_at) || DateTime.new( 1 )
         end
       end
       private :max
 
       # UTC timestamp of last updated record
       def last_update( clazz )
-        last_date = ( max( clazz ) || DateTime.new( 0 ) )
+        last_date = max( clazz )
         last_date.strftime( '%Y-%m-%d %H:%M:%S.' ) + ( "%06d" % ( last_date.sec_fraction / NANOSECONDS_IN_DAY / 1000 ) ) + "+0:00"
       end
       private :last_update
