@@ -31,8 +31,9 @@ module Ixtlan
         @new_method = new_method || @model.method(:new)
       end
 
-      def create_result_objects( result )
-        root = @model.to_s.sub(/.*::/, '').underscore.singularize
+      def create_result_objects( result ) 
+        # naiv singularize english plural
+        root = @model.to_s.sub(/.*::/, '').underscore.sub( /s$/, '')
         if result.is_a? Array
           result.collect do |r|
             new_instance( r[root] || r )
