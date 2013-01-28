@@ -41,9 +41,23 @@ module Ixtlan
         serializer( user ).use( :session ).to_hash
       end
 
-      def from_session( data ) 
-        if data
-          User.new( data )
+      if User.respond_to?( :properties )
+        def from_session( data ) 
+          if data
+            data = data.dup
+            groups = (data.delete( 'groups' ) || []).collect do |g|
+              Group.new( g )
+            end
+            user = User.first( :login => data[ 'login' ] )
+            user.groups = groups
+            user
+          end
+        end
+      else
+        def from_session( data ) 
+          if data
+            User.new( data )
+          end
         end
       end
 
