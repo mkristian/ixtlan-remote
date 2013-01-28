@@ -47,8 +47,8 @@ module Ixtlan
       def set_timestamps_on_save
       end
 
-      def initialize(params = {})
-        super
+      def to_s
+        "User( #{name} <#{login}> )"
       end
     end
   end
